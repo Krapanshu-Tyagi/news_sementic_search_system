@@ -1,20 +1,31 @@
-# Python bytecode files
+# Python
 __pycache__/
-*.pyc
-*.pyo
-*.pyd
-*.so
+*.py[cod]
 *.egg-info/
-dist/
-build/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
 
-# Ignore virtual environment directories
+# Virtual environments
+.venv/
 venv/
 env/
 
-# Ignore log files
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Generated model and vector-index artifacts
+artifacts/
+models/
+*.faiss
+
+# Logs and editor files
 logs/
 *.log
-
-# Ignore Docker files
-.dockerignore
+.vscode/
+.idea/
+.DS_Store

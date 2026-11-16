@@ -1,23 +1,34 @@
-import sys
+import json
 import os
-
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from pathlib import Path
 
 from data.dataloader import load_data
 from embeddings.embedder import Embedder
+from vector_db.faiss_store import build_index, save_index
 
-def main():
-    docs, labels = load_data()
-    print("Total documents:", len(docs))
-    print("Total labels:", len(set(labels)))
+ROOT = Path(__file__).resolve().parents[1]
+INDEX_DIR = Path(os.getenv("INDEX_DIR", ROOT / "artifacts"))
 
-    embedder = Embedder()
 
-    print("\nGenerating embeddings...\n")
+def main() -> None:
+    documents, labels = load_data()
+    print(f"Loaded {len(documents):,} documents across {len(set(labels))} categories.")
 
-    embeddings = embedder.embed(docs[:1000])   # test with 1000 first
+    embeddings = Embedder().embed(documents)
+    print(f"Generated embeddings with shape {embeddings.shape}.")
 
-    print("\nEmbedding shape:", embeddings.shape)
+    index = build_index(embeddings)
+    save_index(index, INDEX_DIR / "newsgroups.faiss")
+
+    metadata = [
+        {"document_id": i, "category": labels[i], "text": documents[i]}
+        for i in range(len(documents))
+    ]
+    INDEX_DIR.mkdir(parents=True, exist_ok=True)
+    (INDEX_DIR / "documents.json").write_text(
+        json.dumps(metadata, ensure_ascii=False), encoding="utf-8"
+    )
+    print(f"Saved {index.ntotal:,} vectors and document metadata to {INDEX_DIR}.")
 
 
 if __name__ == "__main__":
